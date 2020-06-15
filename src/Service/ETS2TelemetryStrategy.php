@@ -3,6 +3,8 @@
 namespace Service;
 use Model\CarModel;
 use Model\TelemetryModel;
+use Requests;
+
 /**
  * Description of ETS2TelemetryStrategy
  *
@@ -13,9 +15,18 @@ class ETS2TelemetryStrategy implements TelemetryInterface
     private function createCarModel(&$json)
     {
         $carModel = new CarModel();
-        
+
         $carModel->setSpeed((int)$json->truckSpeed);
-        
+        $carModel->setRpm((int)$json->engineRpm);
+        $carModel->setFuel((int)$json->fuel);
+        $carModel->setFuelMaxCapacity((int)$json->fuelCapacity);
+        $carModel->setGear((int)$json->gear);
+        $carModel->setGearMaxValue((int)$json->gears);
+
+
+        //Lights
+        $carModel->setBlinkerRight((int)$json->blinkerRightOn);
+
         return $carModel;
     }
     
@@ -35,13 +46,15 @@ class ETS2TelemetryStrategy implements TelemetryInterface
         
         $json = json_decode($re);
         
-        return $this->convertDataToModel($json);
+        //return $this->convertDataToModel($json);
         
         $request = Requests::get(TelemetryInterface::ETS2_URL_TELEMETRY, [], []);
         if ($request->status_code != 200) {
             return [];
         }
-        
-        $data = $request->body;
+        var_dump($request->body);
+        $data = json_decode($request->body);
+
+        return $this->convertDataToModel($data);
     }
 }

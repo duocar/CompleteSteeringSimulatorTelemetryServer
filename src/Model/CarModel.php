@@ -2,12 +2,14 @@
 
 namespace Model;
 
+use JsonSerializable;
+
 /**
  * Description of Car
  *
  * @author ronal
  */
-class CarModel 
+class CarModel implements JsonSerializable
 {
     private $speed;
     private $rpm;
@@ -218,5 +220,15 @@ class CarModel
     public function setWaterTemperature($waterTemperature) {
         $this->waterTemperature = $waterTemperature;
         return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function jsonSerialize()
+    {
+        $a = get_object_vars($this);
+
+        return $a;
     }
 }

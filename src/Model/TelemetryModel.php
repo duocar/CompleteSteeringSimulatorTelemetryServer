@@ -27,7 +27,7 @@ class TelemetryModel implements JsonSerializable
     public function jsonSerialize()
     {
         return [
-            'speed' => $this->carModel->getSpeed()
+            'vehicle' => $this->carModel
         ];
     }
 
