@@ -1,0 +1,17 @@
+{
+    "name": "duocar/complete-steering-simulator-telemetry-server",
+    "authors": [
+        {
+            "name": "Ronaldo",
+            "email": "ro@gm.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "": "src/"
+        }
+    },
+    "require": {
+        "rmccue/requests": ">=1.0"
+    }
+}
