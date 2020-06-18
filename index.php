@@ -2,6 +2,8 @@
 
 require 'vendor/autoload.php';
 
+header('Content-Type: application/json');
+
 $context = new Service\TelemetryContext();
 
 $strategy = new Service\ETS2TelemetryStrategy();
@@ -12,5 +14,5 @@ $telemetry = $context->makeTelemetry();
 
 $data = json_encode($telemetry, JSON_PRETTY_PRINT);
 
-var_dump($data);
+echo $data;
 

@@ -2,7 +2,11 @@
 
 namespace Service;
 use Model\CarModel;
+use Model\GameModel;
+use Model\MotionModel;
+use Model\NavigationModel;
 use Model\TelemetryModel;
+use Model\VehicleModel;
 use Requests;
 
 /**
@@ -12,29 +16,106 @@ use Requests;
  */
 class ETS2TelemetryStrategy implements TelemetryInterface
 {
-    private function createCarModel(&$json)
+    private function createTruckData(&$json)
     {
-        $carModel = new CarModel();
+        $vehicleModel = new VehicleModel();
 
-        $carModel->setSpeed((int)$json->truckSpeed);
-        $carModel->setRpm((int)$json->engineRpm);
-        $carModel->setFuel((int)$json->fuel);
-        $carModel->setFuelMaxCapacity((int)$json->fuelCapacity);
-        $carModel->setGear((int)$json->gear);
-        $carModel->setGearMaxValue((int)$json->gears);
-
+        $vehicleModel->setSpeed((int)$json->truckSpeed);
+        $vehicleModel->setRpm((int)$json->engineRpm);
+        $vehicleModel->setRpmMaxCapacity((int)$json->engineRpmMax);
+        $vehicleModel->setFuel((int)$json->fuel);
+        $vehicleModel->setFuelMaxCapacity((int)$json->fuelCapacity);
+        $vehicleModel->setGear((int)$json->gear);
+        $vehicleModel->setGearMaxValue((int)$json->gears);
+        $vehicleModel->setOdometer((int)$json->truckOdometer);
+        $vehicleModel->setWaterTemperature((int)$json->waterTemperature);
 
         //Lights
-        $carModel->setBlinkerRight((int)$json->blinkerRightOn);
+        $vehicleModel->setCruiseControl((boolean)$json->cruiseControlOn);
+        $vehicleModel->setEletric((boolean)$json->electricOn);
+        $vehicleModel->setEngine((boolean)$json->engineOn);
+        $vehicleModel->setBlinkerRight((boolean)$json->blinkerRightOn);
+        $vehicleModel->setBlinkerLeft((boolean)$json->blinkerLeftOn);
+        $vehicleModel->setLightBeaconOn((boolean)$json->lightsBeaconOn);
+        $vehicleModel->setLightBeamLow((boolean)$json->lightsBeamLowOn);
+        $vehicleModel->setLightBeamHigh((boolean)$json->lightsBeamHighOn);
+        $vehicleModel->setLightAuxRoof((boolean)$json->lightsAuxRoofOn);
+        $vehicleModel->setLightAuxFront((boolean)$json->lightsAuxFrontOn);
 
-        return $carModel;
+        //warnings
+        $vehicleModel->setBatteryVoltageWarning((boolean)$json->batteryVoltageWarning);
+        $vehicleModel->setAirPressureWarning((boolean)$json->airPressureWarning);
+        $vehicleModel->setOilPressureWarning((boolean)$json->oilPressureWarning);
+        $vehicleModel->setWaterTemperatureWarning((boolean)$json->waterTemperatureWarning);
+        $vehicleModel->setFuelWarning((boolean)$json->fuelWarning);
+
+        return $vehicleModel;
+    }
+
+    private function createGameData(&$json)
+    {
+        $gameModel = new GameModel();
+
+        $gameModel->setConnected((boolean)$json->connected);
+        $gameModel->setGameTime(new \DateTime($json->gameTime));
+        $gameModel->setGamePaused((boolean)$json->gamePaused);
+        $gameModel->setTelemetryPluginVersion($json->telemetryPluginVersion);
+        $gameModel->setGameVersion($json->gameVersion);
+
+        return $gameModel;
+    }
+
+    private function createMotionData(&$json)
+    {
+        $motionModel = new MotionModel();
+
+        $motionModel->setAccelerationX($json->accelerationX);
+        $motionModel->setAccelerationY($json->accelerationY);
+        $motionModel->setAccelerationZ($json->accelerationZ);
+        $motionModel->setCoordinateX($json->coordinateX);
+        $motionModel->setCoordinateY($json->coordinateY);
+        $motionModel->setCoordinateZ($json->coordinateZ);
+        $motionModel->setRotationX($json->rotationX);
+        $motionModel->setRotationY($json->rotationY);
+        $motionModel->setRotationZ($json->rotationZ);
+
+        return $motionModel;
+    }
+
+    private function createNavigationData(&$json)
+    {
+        $navigationModel = new NavigationModel();
+
+        $navigationModel->setTrailerId($json->trailerId);
+        $navigationModel->setTrailerMass($json->trailerMass);
+        $navigationModel->setTrailerName($json->trailerName);
+        $navigationModel->setHasJob($json->hasJob);
+        $navigationModel->setJobIncome($json->jobIncome);
+        $navigationModel->setJobDeadlineTime(new \DateTime($json->jobDeadlineTime));
+        $navigationModel->setJobRemainingTime(new \DateTime($json->jobRemainingTime));
+        $navigationModel->setSourceCity($json->sourceCity);
+        $navigationModel->setDestinationCity($json->destinationCity);
+        $navigationModel->setSourceCompany($json->sourceCompany);
+        $navigationModel->setDestinationCompany($json->destinationCompany);
+
+        return $navigationModel;
     }
     
     private function convertDataToModel(&$json)
     {
         $telemetryModel = new TelemetryModel();
-        $carModel = $this->createCarModel($json);
-        $telemetryModel->setCarModel($carModel);
+
+        $vehicleModel = $this->createTruckData($json);
+        $telemetryModel->setVehicleModel($vehicleModel);
+
+        $gameModel = $this->createGameData($json);
+        $telemetryModel->setGameModel($gameModel);
+
+        $motionModel = $this->createMotionData($json);
+        $telemetryModel->setMotionModel($motionModel);
+
+        $navigationModel = $this->createNavigationData($json);
+        $telemetryModel->setNavigationModel($navigationModel);
         
         return $telemetryModel;
     }
@@ -42,17 +123,11 @@ class ETS2TelemetryStrategy implements TelemetryInterface
     
     public function getTelemetry()
     {
-        $re = '{"connected":false,"gameTime":"0026-11-17T18:33:00Z","gamePaused":true,"telemetryPluginVersion":"2","gameVersion":"1.16","trailerAttached":false,"truckSpeed":2.64101909E-05,"accelerationX":5.728504E-05,"accelerationY":2.22016479E-05,"accelerationZ":-0.000175403184,"coordinateX":-39799.5742,"coordinateY":107.238281,"coordinateZ":-38512.1055,"rotationX":0.435496151,"rotationY":-7.589099E-08,"rotationZ":3.79454939E-08,"gear":0,"gears":12,"gearRanges":0,"gearRangeActive":0,"engineRpm":550.0006,"engineRpmMax":2500.0,"fuel":594.287659,"fuelCapacity":1400.0,"fuelAverageConsumption":0.37506485,"userSteer":0.0,"userThrottle":0.0,"userBrake":0.0,"userClutch":0.0,"gameSteer":-0.41304028,"gameThrottle":1.401298E-45,"gameBrake":0.0,"gameClutch":0.0,"truckMass":0.0,"truckModelLength":16,"truckModelOffset":15360,"trailerMass":0.0,"trailerId":"","trailerName":"","hasJob":false,"jobIncome":0,"jobDeadlineTime":"0001-01-01T00:00:00Z","jobRemainingTime":"0001-01-01T00:00:00Z","sourceCity":"","destinationCity":"","sourceCompany":"","destinationCompany":"","retarderBrake":0,"shifterSlot":0,"shifterToggle":0,"cruiseControlOn":false,"wipersOn":false,"parkBrakeOn":false,"motorBrakeOn":false,"electricOn":false,"engineOn":true,"blinkerLeftActive":false,"blinkerRightActive":false,"blinkerLeftOn":false,"blinkerRightOn":false,"lightsParkingOn":false,"lightsBeamLowOn":false,"lightsBeamHighOn":false,"lightsAuxFrontOn":false,"lightsAuxRoofOn":false,"lightsBeaconOn":true,"lightsBrakeOn":false,"lightsReverseOn":false,"batteryVoltageWarning":false,"airPressureWarning":false,"airPressureEmergency":false,"adblueWarning":false,"oilPressureWarning":false,"waterTemperatureWarning":false,"airPressure":119.204964,"brakeTemperature":36.2070541,"fuelWarning":0.0,"adblue":39.7143822,"adblueConsumpton":0.0,"oilPressure":37.897747,"oilTemperature":55.966774,"waterTemperature":53.1656151,"batteryVoltage":27.17818,"lightsDashboard":1.0,"wearEngine":0.01786747,"wearTransmission":0.0107212821,"wearCabin":0.0285847522,"wearChassis":0.03573094,"wearWheels":0.00537964143,"wearTrailer":0.0,"truckOdometer":2128.42944}';
-        
-        $json = json_decode($re);
-        
-        //return $this->convertDataToModel($json);
-        
         $request = Requests::get(TelemetryInterface::ETS2_URL_TELEMETRY, [], []);
         if ($request->status_code != 200) {
             return [];
         }
-        var_dump($request->body);
+
         $data = json_decode($request->body);
 
         return $this->convertDataToModel($data);
